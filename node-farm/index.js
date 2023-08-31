@@ -2,8 +2,7 @@
 // console.log(hello)
 ///blocking synchronous
 const fs = require("fs");
-const http = require('http')
-
+const http = require("http");
 
 /////////////////////////////////////File
 // const textIn = fs.readFileSync('./txt/input.txt', 'utf-8')
@@ -25,14 +24,11 @@ const http = require('http')
 // console.log("will read file");
 /////////////////////////////////////////
 //server
-http.createServer((req, res) => {
-    res.end("hello from the server")
-}
-)
+const server = http.createServer((req, res) => {
+  console.log(req);
+  res.end("hello from the server");
+});
 
-
-
-
-
-
-
+server.listen(8000, "127.0.0.1", () => {
+  console.log("Listining to request on port 8000");
+});
