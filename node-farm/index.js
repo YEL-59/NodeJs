@@ -4,10 +4,12 @@
 const fs = require("fs");
 const http = require("http");
 const url = require("url");
-const replaceTemplate = require("./modules/replaceTemplate");
+const replaceTemplate = require("./modules/reolaceTemplate");
+const slugify = require("slugify");
 /////////////////////////////////////File
 // const textIn = fs.readFileSync('./txt/input.txt', 'utf-8')
 // console.log(textIn)
+
 
 //Non-Blocking asynchronous
 
@@ -19,7 +21,7 @@ const replaceTemplate = require("./modules/replaceTemplate");
 //             fs.writeFile("./txt/final.txt", `${data2}\n${data3}`, "utf-8", (err) => {
 //                 console.log("your file has written ");
 //             });
-//         });
+//         }); 
 //     });
 // });
 // console.log("will read file");
@@ -56,6 +58,8 @@ const tempProduct = fs.readFileSync(
 const data = fs.readFileSync(`${__dirname}/dev-data/data.json`, "utf-8");
 //console.log(data);
 const dataObj = JSON.parse(data);
+const slugs = dataObj.map((el) => slugify(el.productName, { lower: true }));
+console.log(slugs);
 const server = http.createServer((req, res) => {
   //console.log(req);
   //Routing
