@@ -1,4 +1,4 @@
-const replaceTemplate = (temp, product) => {
+module.exports = (temp, product) => {
     let output = temp.replace(/{%PRODUCTNAME%}/g, product.productName);
     output = output.replace(/{%IMAGE%}/g, product.image);
     output = output.replace(/{%PRICE%}/g, product.price);
@@ -13,4 +13,3 @@ const replaceTemplate = (temp, product) => {
   
     //console.log(product);
   };
-  exports.replaceTemplate = replaceTemplate;
