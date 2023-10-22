@@ -1,37 +1,45 @@
 const fs = require('fs');
 const express = require('express');
 const { send } = require('process');
+const morgan = require('morgan'); //3rd party middleware function to log requests to console in dev mode and to file in production mode
 
 const app = express();
+
+//1) MIDDLEWARES
+app.use(morgan('dev'));
+
 //middleware function to add data from body to req.body property of request object in post request to /api/v1/tours endpoint
 app.use(express.json());
 
-// app.get('/', (req, res) => {
-//   res
-//     .status(200)
-//     .json({ message: 'Hello from the server side!', app: 'Natours' });
-// });
-// app.post('/',(req, res)=>{
-//     res.send('You can post to this endpoint...')
-// })
-//db.json file contains all tours data in json format
+//2) ROUTE HANDLERS
+app.use((req, res, next) => {
+  console.log('Hello from the middleware');
+  next();
+});
+
+app.use((req, res, next) => {
+  req.requestTime = new Date().toISOString();
+  next();
+});
+
 const tours = JSON.parse(
   fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`)
 );
-//get all tours from tours-simple.json file and send it to client in response to get request to /api/v1/tours endpoint
-app.get('/api/v1/tours', (req, res) => {
+
+//3) ROUTE HANDLERS
+const getAllTours = (req, res) => {
+  console.log(req.requestTime);
   res.status(200).json({
     status: 'success',
+    requestedAt: req.requestTime,
     results: tours.length,
     data: {
       tours,
     },
   });
-});
+};
 
-//get tour with id from tours-simple.json file and send it to client in response to get request to /api/v1/tours/:id endpoint 
-
-app.get('/api/v1/tours/:id', (req, res) => {
+const getTour = (req, res) => {
   console.log(req.params);
   //convert id from string to number
   const id = req.params.id * 1;
@@ -53,11 +61,9 @@ app.get('/api/v1/tours/:id', (req, res) => {
       message: 'Invalid ID',
     });
   }
-});
+};
 
-
-// get tour with id from tours-simple.json file and send it to client in response to get request to /api/v1/tours/:id endpoint
-app.post('/api/v1/tours', (req, res) => {
+const createTour = (req, res) => {
   //console.log(req.body);
   //add new tour to tours-simple.json file
   const newId = tours[tours.length - 1].id + 1;
@@ -75,13 +81,8 @@ app.post('/api/v1/tours', (req, res) => {
       });
     }
   );
-
-  //res.send('Done');
-});
-
-//update tour with id from tours-simple.json file and send it to client in response to patch request to /api/v1/tours/:id endpoint
-
-app.patch('/api/v1/tours/:id', (req, res) => {
+};
+const updateTour = (req, res) => {
   //console.log(req.body);
   //convert id from string to number
   const id = req.params.id * 1;
@@ -103,10 +104,9 @@ app.patch('/api/v1/tours/:id', (req, res) => {
       message: 'Invalid ID',
     });
   }
-});
+};
 
-app.delete('/api/v1/tours/:id', (req, res) => {
-
+const deleteTour = (req, res) => {
   //convert id from string to number
   const id = req.params.id * 1;
   //find tour with id from tours-simple.json file
@@ -125,9 +125,69 @@ app.delete('/api/v1/tours/:id', (req, res) => {
       message: 'Invalid ID',
     });
   }
-}
-);
+};
+
+const getAllUsers = (req, res) => {
+  res.status(500).json({
+    status: 'error',
+    message: 'This route is not yet defined',
+  });
+};
+const getUser = (req, res) => {
+  res.status(500).json({
+    status: 'error',
+    message: 'This route is not yet defined',
+  });
+};
+const createUser = (req, res) => {
+  res.status(500).json({
+    status: 'error',
+    message: 'This route is not yet defined',
+  });
+};
+const updateUser = (req, res) => {
+  res.status(500).json({
+    status: 'error',
+    message: 'This route is not yet defined',
+  });
+};
+const deleteUser = (req, res) => {
+  res.status(500).json({
+    status: 'error',
+    message: 'This route is not yet defined',
+  });
+};
+
+//4) ROUTES
+//app.get('/api/v1/tours', getAllTours);
+
+//app.get('/api/v1/tours/:id', getTour);
+
+//app.post('/api/v1/tours', createTour);
+
+//app.patch('/api/v1/tours/:id', updateTour);
+
+//app.delete('/api/v1/tours/:id', deleteTour);
+
+//chaining multiple middleware functions to same route  - app.route()
+
+// route handler functions for route /api/v1/tours are defined in tourController.js file and imported here as getAllTours, getTour, createTour, updateTour, deleteTour functions and passed as arguments to route handler functions in tourRoutes.js file as getAllTours, getTour, createTour, updateTour, deleteTour functions respectively and exported from tourRoutes.js
+
+const tourRouter = express.Router();
+const userRouter = express.Router();
+
+tourRouter.route('/').get(getAllTours).post(createTour);
+
+tourRouter.route('/:id').get(getTour).patch(updateTour).delete(deleteTour);
+
+userRouter.route('/').get(getAllUsers).post(createUser);
+userRouter.route('/:id').get(getUser).patch(updateUser).delete(deleteUser);
+
+app.use('/api/v1/tours', tourRouter);
+app.use('/api/v1/users', userRouter);
+//server static files
 const port = 3000;
+
 app.listen(port, () => {
   console.log(`App running on port ${port}...`);
 });
