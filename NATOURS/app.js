@@ -1,18 +1,37 @@
 const fs = require('fs');
 const express = require('express');
 const { send } = require('process');
+const morgan = require('morgan'); //3rd party middleware function to log requests to console in dev mode and to file in production mode
 
 const app = express();
+
+//1) MIDDLEWARES
+app.use(morgan('dev'));
+
 //middleware function to add data from body to req.body property of request object in post request to /api/v1/tours endpoint
 app.use(express.json());
+
+//2) ROUTE HANDLERS
+app.use((req, res, next) => {
+  console.log('Hello from the middleware');
+  next();
+});
+
+app.use((req, res, next) => {
+  req.requestTime = new Date().toISOString();
+  next();
+});
 
 const tours = JSON.parse(
   fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`)
 );
 
+//3) ROUTE HANDLERS
 const getAllTours = (req, res) => {
+  console.log(req.requestTime);
   res.status(200).json({
     status: 'success',
+    requestedAt: req.requestTime,
     results: tours.length,
     data: {
       tours,
@@ -108,6 +127,38 @@ const deleteTour = (req, res) => {
   }
 };
 
+const getAllUsers = (req, res) => {
+  res.status(500).json({
+    status: 'error',
+    message: 'This route is not yet defined',
+  });
+};
+const getUser = (req, res) => {
+  res.status(500).json({
+    status: 'error',
+    message: 'This route is not yet defined',
+  });
+};
+const createUser = (req, res) => {
+  res.status(500).json({
+    status: 'error',
+    message: 'This route is not yet defined',
+  });
+};
+const updateUser = (req, res) => {
+  res.status(500).json({
+    status: 'error',
+    message: 'This route is not yet defined',
+  });
+};
+const deleteUser = (req, res) => {
+  res.status(500).json({
+    status: 'error',
+    message: 'This route is not yet defined',
+  });
+};
+
+//4) ROUTES
 //app.get('/api/v1/tours', getAllTours);
 
 //app.get('/api/v1/tours/:id', getTour);
@@ -119,14 +170,22 @@ const deleteTour = (req, res) => {
 //app.delete('/api/v1/tours/:id', deleteTour);
 
 //chaining multiple middleware functions to same route  - app.route()
-app.route('/api/v1/tours').get(getAllTours).post(createTour);
 
-app
-  .route('/api/v1/tours/:id')
-  .get(getTour)
-  .patch(updateTour)
-  .delete(deleteTour);
+// route handler functions for route /api/v1/tours are defined in tourController.js file and imported here as getAllTours, getTour, createTour, updateTour, deleteTour functions and passed as arguments to route handler functions in tourRoutes.js file as getAllTours, getTour, createTour, updateTour, deleteTour functions respectively and exported from tourRoutes.js
 
+const tourRouter = express.Router();
+const userRouter = express.Router();
+
+tourRouter.route('/').get(getAllTours).post(createTour);
+
+tourRouter.route('/:id').get(getTour).patch(updateTour).delete(deleteTour);
+
+userRouter.route('/').get(getAllUsers).post(createUser);
+userRouter.route('/:id').get(getUser).patch(updateUser).delete(deleteUser);
+
+app.use('/api/v1/tours', tourRouter);
+app.use('/api/v1/users', userRouter);
+//server static files
 const port = 3000;
 
 app.listen(port, () => {
