@@ -6,20 +6,11 @@ const app = express();
 //middleware function to add data from body to req.body property of request object in post request to /api/v1/tours endpoint
 app.use(express.json());
 
-// app.get('/', (req, res) => {
-//   res
-//     .status(200)
-//     .json({ message: 'Hello from the server side!', app: 'Natours' });
-// });
-// app.post('/',(req, res)=>{
-//     res.send('You can post to this endpoint...')
-// })
-//db.json file contains all tours data in json format
 const tours = JSON.parse(
   fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`)
 );
-//get all tours from tours-simple.json file and send it to client in response to get request to /api/v1/tours endpoint
-app.get('/api/v1/tours', (req, res) => {
+
+const getAllTours = (req, res) => {
   res.status(200).json({
     status: 'success',
     results: tours.length,
@@ -27,11 +18,9 @@ app.get('/api/v1/tours', (req, res) => {
       tours,
     },
   });
-});
+};
 
-//get tour with id from tours-simple.json file and send it to client in response to get request to /api/v1/tours/:id endpoint 
-
-app.get('/api/v1/tours/:id', (req, res) => {
+const getTour = (req, res) => {
   console.log(req.params);
   //convert id from string to number
   const id = req.params.id * 1;
@@ -53,11 +42,9 @@ app.get('/api/v1/tours/:id', (req, res) => {
       message: 'Invalid ID',
     });
   }
-});
+};
 
-
-// get tour with id from tours-simple.json file and send it to client in response to get request to /api/v1/tours/:id endpoint
-app.post('/api/v1/tours', (req, res) => {
+const createTour = (req, res) => {
   //console.log(req.body);
   //add new tour to tours-simple.json file
   const newId = tours[tours.length - 1].id + 1;
@@ -75,13 +62,8 @@ app.post('/api/v1/tours', (req, res) => {
       });
     }
   );
-
-  //res.send('Done');
-});
-
-//update tour with id from tours-simple.json file and send it to client in response to patch request to /api/v1/tours/:id endpoint
-
-app.patch('/api/v1/tours/:id', (req, res) => {
+};
+const updateTour = (req, res) => {
   //console.log(req.body);
   //convert id from string to number
   const id = req.params.id * 1;
@@ -103,10 +85,9 @@ app.patch('/api/v1/tours/:id', (req, res) => {
       message: 'Invalid ID',
     });
   }
-});
+};
 
-app.delete('/api/v1/tours/:id', (req, res) => {
-
+const deleteTour = (req, res) => {
   //convert id from string to number
   const id = req.params.id * 1;
   //find tour with id from tours-simple.json file
@@ -125,9 +106,29 @@ app.delete('/api/v1/tours/:id', (req, res) => {
       message: 'Invalid ID',
     });
   }
-}
-);
+};
+
+//app.get('/api/v1/tours', getAllTours);
+
+//app.get('/api/v1/tours/:id', getTour);
+
+//app.post('/api/v1/tours', createTour);
+
+//app.patch('/api/v1/tours/:id', updateTour);
+
+//app.delete('/api/v1/tours/:id', deleteTour);
+
+//chaining multiple middleware functions to same route  - app.route()
+app.route('/api/v1/tours').get(getAllTours).post(createTour);
+
+app
+  .route('/api/v1/tours/:id')
+  .get(getTour)
+  .patch(updateTour)
+  .delete(deleteTour);
+
 const port = 3000;
+
 app.listen(port, () => {
   console.log(`App running on port ${port}...`);
 });
